@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Upload file</title>
+        <link rel="stylesheet" href="{{ static_url('bootstrap.css') }}">
+        <style>
+            th, td{
+                margin: 2px;
+            }
+            tr{
+                margin-top: 2px;
+            }
+
+        </style>
+    </head>
+    <body onload="get_device_list()" class="container">
+        <div class="row" style="margin-top: 10px">
+            <h2>LastGuarantee</h2>
+            <h3>紧急升级工具</h3>
+        </div>
+        <div class="row" style="margin-top: 15px; margin-bottom: 10px">
+            <div class="col-md-8">
+                <form id="last-guarantee" action="file?filename=" enctype="multipart/form-data" method="post" onsubmit="return modify()">
+                    <div class="form-group">
+                        <label for="file" class="bold">升级文件</label>
+                        <input id="file" class="form-control" placeholder="File" type="file" name="file" />
+                    </div>
+                    <div class="form-group">                        
+                        <input type="submit" id="form-submit" class="btn btn-primary" value="提交" />
+                    </div>                    
+                </form>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6">
+                <label for="update-file">当前待升级文件</label>
+                <br/>
+                <p id="update-file"></p>
+            </div>
+        </div>
+        <div class="row" style="margin-bottom: 20px">
+            <div class="col-sm-8">
+                <label for="target-path">升级目标路径</label>
+                <br/>
+                <input id="target-path" type="text" value="/usr/local/VionSoftware/">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <a class="btn btn-primary" role="button" href="#collapseTable" data-toggle="collapse">设备列表</a>
+                    </h4>
+                </div>
+                <div class="panel-collapse collapse" id="collapseTable">
+                    <div class="panel-body">
+                        <button class="btn btn-primary btn-sm" style="margin:20px" onclick="update_all()">全部依次升级</button>
+                        <button class="btn btn-warning btn-sm" style="margin:20px" onclick="clear_record()">清除升级记录</button>
+                    </div>
+                    <table id="device-list" class="table table-striped table-hover table-condensed">
+                        <tr>
+                            <th>设备节点</th>
+                            <th>进度</th>
+                            <th>操作</th>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
+            <div class="modal-dialog modal-sm" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="myModalLabel">提示</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p>升级记录已清除</p>
+                    </div>
+                     <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                      </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="{{ static_url('jquery.js') }}"></script>
+        <script src="{{ static_url('bootstrap.js') }}"></script>
+        <script src="{{ static_url('jquery.form.js') }}"></script>
+        <script src="{{ static_url('jquery.cookie.js') }}"></script>
+        <script src="{{ static_url('main.js') }}"></script>
+    </body>
+</html>
