@@ -1,4 +1,8 @@
  function modify(){
+    if($('#file')[0].files.length == 0){
+        alert('请先选择文件');
+        return false
+    }
     var f = $("#filename").value = $("#file")[0].files[0].name;
     var cur = $("#last-guarantee");
 
@@ -42,7 +46,7 @@ function get_device_list(){
             }
             $("#device-list").append("<tr><td>" + res.device[i] + "</td><td id='device-" + c
                      + "-result'>" + state + "</td><td><button onclick='update(&quot;device-" + c
-                     + "&quot;)' data-ip='" + res.device[i] + "' class='btn btn-success' id='device-" + c
+                     + "&quot)' data-ip='" + res.device[i] + "' class='btn btn-success' id='device-" + c
                      + "'>开始升级</button>");
             $("#device-" + c + "-result").css("color", clr);
 
@@ -68,6 +72,10 @@ function clear_record(){
     $('.modal').modal();
 }
 
+function reload_page(){
+    location.reload();
+}
+
 function update(id){
     var ip = $("#"+id).data('ip');
     var path = $("#target-path").val();
@@ -79,7 +87,7 @@ function update(id){
     $.ajax({
         url:"request?device="+ ip +"&path=" + path,
         type: "get",
-        timeout: 140000,
+        timeout: 300000,
         data: {},
         dataType: "json",
         success: function(data){
@@ -110,10 +118,24 @@ function update(id){
                 $('#'+ id + '-result').html('失败');
                 console.log(res.err);
             }
+            return 0
         },
         error: function(data){
             var dev_detail = $.parseJSON($.cookie("device_detail"));
-            var res = $.parseJSON(data.responseText);
+            try{
+                var res = $.parseJSON(data.responseText);
+            } catch(err){
+                if(dev_detail == null || dev_detail === undefined){
+                    dev_detail = new Object();
+                }
+                
+                dev_detail[$('#' + id).data('ip')] = 2;
+                $.cookie("device_detail", JSON.stringify(dev_detail));
+                $('#'+ id + '-result').html('失败');
+                console.log('Uncaught exception: ' + err)
+                return 1
+            }
+
 
             if(dev_detail == null || dev_detail === undefined){
                 dev_detail = new Object();
@@ -123,6 +145,7 @@ function update(id){
             $.cookie("device_detail", JSON.stringify(dev_detail));
             $('#'+ id + '-result').html('失败');
             console.log(res.err);
+            return 1
         },
         complete: function(XMLHttpRequest, status){
             if(status == 'timeout'){

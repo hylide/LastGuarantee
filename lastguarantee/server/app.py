@@ -59,6 +59,9 @@ class DeviceHandler(tornado.web.RequestHandler):
 
 class UpdateHandler(tornado.web.RequestHandler):
 
+    connect = set()
+    max_connections = 3
+
     def write_error(self, status_code, **kwargs):
         self.finish(json.dumps({
             "result": "failed",
@@ -66,6 +69,7 @@ class UpdateHandler(tornado.web.RequestHandler):
             "err": kwargs["err"]
         }))
 
+    @tornado.web.asynchronous
     @tornado.gen.coroutine
     def get(self):
 
@@ -75,26 +79,43 @@ class UpdateHandler(tornado.web.RequestHandler):
         except tornado.web.MissingArgumentError:
             base = ""
 
+        if self in UpdateHandler.connect:
+            # connect already exist
+            self.send_error(ip=dev, err='Duplicated connection')
+            print UpdateHandler.connect.__len__(), 'Duplicated connection'
+        else:
+            while True:
+                if UpdateHandler.connect.__len__() >= UpdateHandler.max_connections:
+                    print 'Connections arrived limit(max 3), holding connection now'
+                    yield tornado.gen.sleep(0.5)
+                else:
+                    print 'Connection unfreezed.'
+                    UpdateHandler.connect.add(self)
+                    break
         with open(base_dir + '/update_file.json') as up:
             filename = json.loads(up.read())['file']
         with open(base_dir + '/device.json') as svr:
             serv = json.loads(svr.read())['server']
-        
+
         tornado.httpclient.AsyncHTTPClient.configure(NoQueueTimeoutHTTPClient)
-        http_client = tornado.httpclient.AsyncHTTPClient()  
+        http_client = tornado.httpclient.AsyncHTTPClient()
         try:
-            response = yield http_client.fetch("http://{device}:5556/?file={filename}&server={server}&base_dir={base}".format(
-                device=dev, filename=filename, server=serv, base=base))
+            response = yield http_client.fetch(
+                "http://{device}:5556/?file={filename}&server={server}&base_dir={base}".format(
+                    device=dev, filename=filename, server=serv, base=base))
             http_client.close()
+            UpdateHandler.connect.remove(self)
             self.write(json.dumps({
                 "result": "success",
                 "ip": dev
             }))
+
+            self.finish()
         except:
             http_client.close()
-            print str(sys.exc_info()[0])
+            UpdateHandler.connect.remove(self)
             self.send_error(ip=dev, err=str(sys.exc_info()[0]))
-          
+
 
 @tornado.web.stream_request_body
 class FileUploader(tornado.web.RequestHandler):

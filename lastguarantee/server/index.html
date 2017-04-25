@@ -3,6 +3,7 @@
     <head>
         <title>Upload file</title>
         <link rel="stylesheet" href="{{ static_url('bootstrap.css') }}">
+        <meta author="hylide">
         <style>
             th, td{
                 margin: 2px;
@@ -10,7 +11,6 @@
             tr{
                 margin-top: 2px;
             }
-
         </style>
     </head>
     <body onload="get_device_list()" class="container">
@@ -31,22 +31,25 @@
                 </form>
             </div>
         </div>
-        <div class="row">
-            <div class="col-sm-6">
-                <label for="update-file">当前待升级文件</label>
-                <br/>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h5 class="panel-title">当前待升级文件</h5>
+            </div>
+            <div class="panel-body">
                 <p id="update-file"></p>
             </div>
         </div>
-        <div class="row" style="margin-bottom: 20px">
-            <div class="col-sm-8">
-                <label for="target-path">升级目标路径</label>
-                <br/>
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h5 class="panel-title">升级目标路径</h5>
+            </div>
+            <div class="panel-body">
                 <input id="target-path" type="text" value="/usr/local/VionSoftware/">
             </div>
         </div>
 
-        <div class="row">
+        <div class="row" style="margin-top:15px">
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <h4 class="panel-title">
@@ -79,7 +82,7 @@
                         <p>升级记录已清除</p>
                     </div>
                      <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal" onclick="reload_page();">Close</button>
                       </div>
                 </div>
             </div>
