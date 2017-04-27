@@ -15,7 +15,11 @@ from tornado.simple_httpclient import SimpleAsyncHTTPClient
 
 base_dir = os.path.dirname(__file__)
 
+
 class NoQueueTimeoutHTTPClient(SimpleAsyncHTTPClient):
+    """
+    Class for implementing None-blocking and No Queue Timeout client with tornado.
+    """
     def fetch_impl(self, request, callback):
         key = object()
 
@@ -29,6 +33,9 @@ class NoQueueTimeoutHTTPClient(SimpleAsyncHTTPClient):
 
 
 class MainHandler(tornado.web.RequestHandler):
+    """
+    Index page Handler class.
+    """
 
     def get(self):
 
@@ -36,6 +43,9 @@ class MainHandler(tornado.web.RequestHandler):
 
 
 class MyStreamer(MultiPartStreamer):
+    """
+    Patch class between tornado streamer decorator and class NoQueueTimeoutHTTPClient
+    """
 
     def create_part(self, headers):
 
@@ -43,6 +53,11 @@ class MyStreamer(MultiPartStreamer):
 
 
 class DeviceHandler(tornado.web.RequestHandler):
+    """
+    Class of Device list handler.
+    for GET, return device list.
+    for POST, modify the existing device list files.
+    """
 
     def get(self):
 
@@ -95,6 +110,9 @@ class DeviceHandler(tornado.web.RequestHandler):
 
 
 class UpdateHandler(tornado.web.RequestHandler):
+    """
+    Main handler of updating. This handler is entirely asynchronous
+    """
 
     connect = set()
     max_connections = 5
@@ -157,6 +175,10 @@ class UpdateHandler(tornado.web.RequestHandler):
 
 @tornado.web.stream_request_body
 class FileUploader(tornado.web.RequestHandler):
+    """
+    Handler for upload files. Patched with MyStreamer class, so it can overreach the limit of
+    tornado max-body-size(default 100M).
+    """
 
     def prepare(self):
         if self.request.method.lower() == 'post':

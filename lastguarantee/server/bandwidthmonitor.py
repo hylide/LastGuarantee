@@ -1,4 +1,4 @@
-"""Monitor and limit bandwidth for streamed requests."""
+# -*- coding:utf-8 -*-
 import time
 import math
 

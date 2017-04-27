@@ -52,9 +52,8 @@ class IndexHandler:
 
 class UpdateHandler:
 
-    def GET(self):
-        request = web.input()
-
+    def POST(self):
+        pass
 
 if __name__ == '__main__':
     urls = [

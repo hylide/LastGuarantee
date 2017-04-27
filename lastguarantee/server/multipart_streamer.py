@@ -1,4 +1,5 @@
 #!/usr/bin/env
+# -*- coding:utf-8 -*-
 """Multipart/form-data streamer for tornado 4.3"""
 import os
 import re
