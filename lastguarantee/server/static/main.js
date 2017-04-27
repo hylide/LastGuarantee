@@ -14,10 +14,18 @@ function get_device_list(){
     $.get("device_list", function(data){
         var res = $.parseJSON(data);
         var c = 0;
-        var his = $.parseJSON($.cookie("device_detail"));
+        var his;
         var state;
         var clr;
         var update = $("#update-file");
+
+        $("#device-list").html('');
+
+        if($.cookie("device_detail") == undefined){
+            his = null;
+        } else {
+            his = $.parseJSON($.cookie("device_detail"));
+        }
 
         if (res['filename']){
             update.html(res['filename']);
@@ -69,7 +77,42 @@ function update_all(){
 
 function clear_record(){
     $.cookie("device_detail", null);
-    $('.modal').modal();
+    $('#clear-record-modal').modal();
+}
+
+function modify_device(){
+    $('#modify-device-modal').modal();
+}
+ 
+function isValidIP(ip){     
+    var reg =  /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/     
+    return reg.test(ip);     
+}    
+ 
+function submit_device_modification(){
+    var s = $('#start-ip').val();
+    var e = $('#end-ip').val();
+    if(!isValidIP(s) || !isValidIP(e)){
+        alert('错误的IP地址格式');
+    }
+    
+    $.ajax({
+        url:"device_list",
+        type: "post",
+        data: {
+            "start_ip": s,
+            "end_ip": e
+        },
+        dataType: "json",
+        success: function(data){
+            var res = data;
+            if(res.result == 'success'){
+                get_device_list();
+            } else {
+                alert('修改设备列表失败！');
+            }
+        }
+    })
 }
 
 function reload_page(){
@@ -79,6 +122,10 @@ function reload_page(){
 function update(id){
     var ip = $("#"+id).data('ip');
     var path = $("#target-path").val();
+
+    if(ip == undefined){
+        return false
+    }
 
     $("#" + id + "-result").html('执行中');
     $("#" + id + "-result").css("color","red");
@@ -92,7 +139,12 @@ function update(id){
         dataType: "json",
         success: function(data){
             var res = $.parseJSON(data);
-            var dev_detail = $.parseJSON($.cookie("device_detail"));
+            var dev_detail;
+            if ($.cookie("device_detail") == undefined){
+                dev_detail = null;
+            } else {
+                dev_detail = $.parseJSON($.cookie("device_detail"));
+            }
             if(dev_detail == null || dev_detail === undefined) {
                 dev_detail = new Ojbect();
             }
@@ -121,7 +173,12 @@ function update(id){
             return 0
         },
         error: function(data){
-            var dev_detail = $.parseJSON($.cookie("device_detail"));
+            var dev_detail;
+            if ($.cookie("device_detail") == undefined){
+                dev_detail = null;
+            } else {
+                dev_detail = $.parseJSON($.cookie("device_detail"));
+            }
             try{
                 var res = $.parseJSON(data.responseText);
             } catch(err){

@@ -52,9 +52,10 @@
         <div class="row" style="margin-top:15px">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h4 class="panel-title">
+                    <h4 class="panel-title" style="display: inline-block;">
                         <a class="btn btn-primary" role="button" href="#collapseTable" data-toggle="collapse">设备列表</a>
                     </h4>
+                    <button class="btn btn-primary" role="button" onclick="modify_device();" id="modify-device" style="float:right">编辑设备列表</button>
                 </div>
                 <div class="panel-collapse collapse" id="collapseTable">
                     <div class="panel-body">
@@ -71,7 +72,37 @@
                 </div>
             </div>
         </div>
-        <div class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
+
+        <div id="modify-device-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modify-device-modal">
+            <div class="modal-dialog modal-sm" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="modify-device-label">编辑设备列表</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="input-group">
+                            <span class="input-group-label">
+                                <label for="start-ip">起始IP</label>
+                            </span>
+                            <input type="text" id="start-ip" name="ips">
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-label">
+                                <label for="start-ip">截止IP</label>
+                            </span>
+                            <input type="text" id="end-ip" name="ipe">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal" onclick="submit_device_modification();">保存</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="clear-record-modal" class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
             <div class="modal-dialog modal-sm" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -82,7 +113,7 @@
                         <p>升级记录已清除</p>
                     </div>
                      <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal" onclick="reload_page();">Close</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal" onclick="reload_page();">关闭</button>
                       </div>
                 </div>
             </div>

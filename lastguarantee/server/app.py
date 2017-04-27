@@ -3,6 +3,7 @@
 import os
 import sys
 import json
+import random
 import tornado.web
 import tornado.httpserver
 import tornado.httpclient
@@ -56,11 +57,47 @@ class DeviceHandler(tornado.web.RequestHandler):
             "device": dev_out["device"]
         }))
 
+    def post(self):
+
+        ips = self.get_body_argument('start_ip')
+        ipe = self.get_body_argument('end_ip')
+        if ips.split('.')[:-1] != ipe.split('.')[:-1]:
+            self.write(json.dumps({
+                "result": "failed",
+                "reason": "different ip domin."
+            }))
+            self.finish()
+
+        domin = '.'.join(ips.split('.')[:-1])
+        ips_last = int(ips.split('.')[-1])
+        ipe_last = int(ipe.split('.')[-1])
+
+        res = []
+
+        i = ips_last
+        while True:
+            if i > ipe_last:
+                break
+            res.append(domin + '.' + str(i))
+            i += 1
+
+        with open(base_dir + '/device.json', 'w') as dev:
+            dev.write(json.dumps(
+                {
+                    "server": res[0],
+                    "device": res
+                }
+            ))
+
+        self.write(json.dumps({
+                "result": "success"
+            }))
+
 
 class UpdateHandler(tornado.web.RequestHandler):
 
     connect = set()
-    max_connections = 3
+    max_connections = 5
 
     def write_error(self, status_code, **kwargs):
         self.finish(json.dumps({
@@ -86,10 +123,11 @@ class UpdateHandler(tornado.web.RequestHandler):
         else:
             while True:
                 if UpdateHandler.connect.__len__() >= UpdateHandler.max_connections:
-                    print 'Connections arrived limit(max 3), holding connection now'
-                    yield tornado.gen.sleep(0.5)
+                    #print 'Connections arrived limit(max {max}), holding connection {self}, target: {target}'.format(
+                        #max=UpdateHandler.max_connections, self=self, target=dev)
+                    yield tornado.gen.sleep(random.randint(20, 80)/100)
                 else:
-                    print 'Connection unfreezed.'
+                    print 'Connection unfreezed. {self}, target: {target}'.format(self=self, target=dev)
                     UpdateHandler.connect.add(self)
                     break
         with open(base_dir + '/update_file.json') as up:
