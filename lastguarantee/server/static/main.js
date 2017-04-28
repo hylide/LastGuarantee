@@ -1,4 +1,8 @@
  function modify(){
+    if($('#file')[0].files.length == 0){
+        alert('请先选择文件');
+        return false
+    }
     var f = $("#filename").value = $("#file")[0].files[0].name;
     var cur = $("#last-guarantee");
 
@@ -10,10 +14,18 @@ function get_device_list(){
     $.get("device_list", function(data){
         var res = $.parseJSON(data);
         var c = 0;
-        var his = $.parseJSON($.cookie("device_detail"));
+        var his;
         var state;
         var clr;
         var update = $("#update-file");
+
+        $("#device-list").html('');
+
+        if($.cookie("device_detail") == undefined){
+            his = null;
+        } else {
+            his = $.parseJSON($.cookie("device_detail"));
+        }
 
         if (res['filename']){
             update.html(res['filename']);
@@ -42,7 +54,7 @@ function get_device_list(){
             }
             $("#device-list").append("<tr><td>" + res.device[i] + "</td><td id='device-" + c
                      + "-result'>" + state + "</td><td><button onclick='update(&quot;device-" + c
-                     + "&quot;)' data-ip='" + res.device[i] + "' class='btn btn-success' id='device-" + c
+                     + "&quot)' data-ip='" + res.device[i] + "' class='btn btn-success' id='device-" + c
                      + "'>开始升级</button>");
             $("#device-" + c + "-result").css("color", clr);
 
@@ -65,12 +77,55 @@ function update_all(){
 
 function clear_record(){
     $.cookie("device_detail", null);
-    $('.modal').modal();
+    $('#clear-record-modal').modal();
+}
+
+function modify_device(){
+    $('#modify-device-modal').modal();
+}
+ 
+function isValidIP(ip){     
+    var reg =  /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/     
+    return reg.test(ip);     
+}    
+ 
+function submit_device_modification(){
+    var s = $('#start-ip').val();
+    var e = $('#end-ip').val();
+    if(!isValidIP(s) || !isValidIP(e)){
+        alert('错误的IP地址格式');
+    }
+    
+    $.ajax({
+        url:"device_list",
+        type: "post",
+        data: {
+            "start_ip": s,
+            "end_ip": e
+        },
+        dataType: "json",
+        success: function(data){
+            var res = data;
+            if(res.result == 'success'){
+                get_device_list();
+            } else {
+                alert('修改设备列表失败！');
+            }
+        }
+    })
+}
+
+function reload_page(){
+    location.reload();
 }
 
 function update(id){
     var ip = $("#"+id).data('ip');
     var path = $("#target-path").val();
+
+    if(ip == undefined){
+        return false
+    }
 
     $("#" + id + "-result").html('执行中');
     $("#" + id + "-result").css("color","red");
@@ -79,14 +134,19 @@ function update(id){
     $.ajax({
         url:"request?device="+ ip +"&path=" + path,
         type: "get",
-        timeout: 140000,
+        timeout: 300000,
         data: {},
         dataType: "json",
         success: function(data){
-            var res = $.parseJSON(data);
-            var dev_detail = $.parseJSON($.cookie("device_detail"));
+            var res = data;
+            var dev_detail;
+            if ($.cookie("device_detail") == undefined){
+                dev_detail = null;
+            } else {
+                dev_detail = $.parseJSON($.cookie("device_detail"));
+            }
             if(dev_detail == null || dev_detail === undefined) {
-                dev_detail = new Ojbect();
+                dev_detail = new Object();
             }
             if (res.result == 'success'){
                 $('#'+ id + '-result').html('已完成');
@@ -110,10 +170,29 @@ function update(id){
                 $('#'+ id + '-result').html('失败');
                 console.log(res.err);
             }
+            return 0
         },
         error: function(data){
-            var dev_detail = $.parseJSON($.cookie("device_detail"));
-            var res = $.parseJSON(data.responseText);
+            var dev_detail;
+            if ($.cookie("device_detail") == undefined){
+                dev_detail = null;
+            } else {
+                dev_detail = $.parseJSON($.cookie("device_detail"));
+            }
+            try{
+                var res = $.parseJSON(data.responseText);
+            } catch(err){
+                if(dev_detail == null || dev_detail === undefined){
+                    dev_detail = new Object();
+                }
+                
+                dev_detail[$('#' + id).data('ip')] = 2;
+                $.cookie("device_detail", JSON.stringify(dev_detail));
+                $('#'+ id + '-result').html('失败');
+                console.log('Uncaught exception: ' + err)
+                return 1
+            }
+
 
             if(dev_detail == null || dev_detail === undefined){
                 dev_detail = new Object();
@@ -123,6 +202,7 @@ function update(id){
             $.cookie("device_detail", JSON.stringify(dev_detail));
             $('#'+ id + '-result').html('失败');
             console.log(res.err);
+            return 1
         },
         complete: function(XMLHttpRequest, status){
             if(status == 'timeout'){
