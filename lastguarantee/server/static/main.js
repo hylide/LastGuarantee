@@ -138,7 +138,7 @@ function update(id){
         data: {},
         dataType: "json",
         success: function(data){
-            var res = $.parseJSON(data);
+            var res = data;
             var dev_detail;
             if ($.cookie("device_detail") == undefined){
                 dev_detail = null;
@@ -146,7 +146,7 @@ function update(id){
                 dev_detail = $.parseJSON($.cookie("device_detail"));
             }
             if(dev_detail == null || dev_detail === undefined) {
-                dev_detail = new Ojbect();
+                dev_detail = new Object();
             }
             if (res.result == 'success'){
                 $('#'+ id + '-result').html('已完成');

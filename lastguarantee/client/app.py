@@ -15,7 +15,11 @@ class IndexHandler:
             request = web.input()
             print request.get('file')
             print request.get('base_dir')
-            base_dir= request.get('base_dir') | base
+            if request.get('path'):
+                base_dir = request.get('path')
+            else:
+                base_dir = base
+
             filename = request.get('file')
             server = request.get('server')
         except KeyError:
@@ -31,10 +35,11 @@ class IndexHandler:
         os.chdir('{base}LastGuarantee/client/'.format(base=base_dir))
         conn = httplib.HTTPConnection('{server}'.format(server=server), port=5557)
         conn.request("GET", '/' + filename, headers=headers)
-        conn.close()
+
         httpres = conn.getresponse()
         with open(filename, 'wb') as fn:
             fn.write(httpres.read())
+        conn.close()
         os.system('rm -rf {base}*.gz'.format(base=base_dir))
         os.system('cp {filename} {base}'.format(filename=filename, base=base_dir))
         pname = filename.split('_')[0]
@@ -50,15 +55,9 @@ class IndexHandler:
             })
 
 
-class UpdateHandler:
-
-    def POST(self):
-        pass
-
 if __name__ == '__main__':
     urls = [
-        ('/', 'IndexHandler'),
-        ('/update', 'UpdateHandler')
+        '/', 'IndexHandler'
     ]
 
     app = web.application(urls, globals())

@@ -13,8 +13,6 @@ from multipart_streamer import MultiPartStreamer, TemporaryFileStreamedPart
 from tornado.log import gen_log
 from tornado.simple_httpclient import SimpleAsyncHTTPClient
 
-base_dir = os.path.dirname(__file__)
-
 
 class NoQueueTimeoutHTTPClient(SimpleAsyncHTTPClient):
     """
@@ -61,10 +59,10 @@ class DeviceHandler(tornado.web.RequestHandler):
 
     def get(self):
 
-        with open(base_dir + '/device.json') as dev:
+        with open('device.json') as dev:
             dev_out = json.loads(dev.read())
 
-        with open(base_dir + '/update_file.json') as up:
+        with open('update_file.json') as up:
             up_out = json.loads(up.read())
 
         self.write(json.dumps({
@@ -96,7 +94,7 @@ class DeviceHandler(tornado.web.RequestHandler):
             res.append(domin + '.' + str(i))
             i += 1
 
-        with open(base_dir + '/device.json', 'w') as dev:
+        with open('device.json', 'w') as dev:
             dev.write(json.dumps(
                 {
                     "server": res[0],
@@ -116,13 +114,6 @@ class UpdateHandler(tornado.web.RequestHandler):
 
     connect = set()
     max_connections = 5
-
-    def write_error(self, status_code, **kwargs):
-        self.finish(json.dumps({
-            "result": "failed",
-            "ip": kwargs["ip"],
-            "err": kwargs["err"]
-        }))
 
     @tornado.web.asynchronous
     @tornado.gen.coroutine
@@ -148,17 +139,21 @@ class UpdateHandler(tornado.web.RequestHandler):
                     print 'Connection unfreezed. {self}, target: {target}'.format(self=self, target=dev)
                     UpdateHandler.connect.add(self)
                     break
-        with open(base_dir + '/update_file.json') as up:
+        with open('update_file.json') as up:
             filename = json.loads(up.read())['file']
-        with open(base_dir + '/device.json') as svr:
+        with open('device.json') as svr:
             serv = json.loads(svr.read())['server']
 
         tornado.httpclient.AsyncHTTPClient.configure(NoQueueTimeoutHTTPClient)
         http_client = tornado.httpclient.AsyncHTTPClient()
+
         try:
             response = yield http_client.fetch(
                 "http://{device}:5556/?file={filename}&server={server}&base_dir={base}".format(
-                    device=dev, filename=filename, server=serv, base=base))
+                    device=dev, filename=filename, server=serv, base=base),
+                connect_timeout=10.0,
+                request_timeout=120.0
+            )
             http_client.close()
             UpdateHandler.connect.remove(self)
             self.write(json.dumps({
@@ -166,11 +161,11 @@ class UpdateHandler(tornado.web.RequestHandler):
                 "ip": dev
             }))
 
-            self.finish()
         except:
-            http_client.close()
-            UpdateHandler.connect.remove(self)
-            self.send_error(ip=dev, err=str(sys.exc_info()[0]))
+            self.write(json.dumps({
+                "result": "failed",
+                "ip": dev
+            }))
 
 
 @tornado.web.stream_request_body
