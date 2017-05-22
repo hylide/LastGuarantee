@@ -1,17 +1,18 @@
-#coding:utf-8
+# -*- coding:utf-8 -*-
 
 import os
-import sys
 import json
 import random
 import tornado.web
-import tornado.httpserver
-import tornado.httpclient
 import tornado.gen
 import tornado.ioloop
-from multipart_streamer import MultiPartStreamer, TemporaryFileStreamedPart
+import tornado.httpserver
+import tornado.httpclient
+
+
 from tornado.log import gen_log
 from tornado.simple_httpclient import SimpleAsyncHTTPClient
+from multipart_streamer import MultiPartStreamer, TemporaryFileStreamedPart
 
 
 class NoQueueTimeoutHTTPClient(SimpleAsyncHTTPClient):

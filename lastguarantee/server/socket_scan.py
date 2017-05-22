@@ -6,4 +6,5 @@ import thread
 
 socket.setdefaulttimeout(3)
 
-def ip_scan()
+def ip_scan():
+    pass
